@@ -6,7 +6,7 @@ from models.employee import Employee
 from models.car import Car
 from models.company import Company
 
- 
+ #update row after updating instance
 def log_in():
     from cli import main
     password = input("Enter Password:")

@@ -6,7 +6,7 @@ from models.company import Company
 class Employee:
     all = []
     db_dict = {}
-    def __init__(self, name, age, password, is_manager, division_id, time_at_company=0, id=None):
+    def __init__(self, name, age, password, is_manager, division_id, time_at_company=0, id=None, comment=None, performance=0):
         self.name = name
         self.age = age
         self.password = password
@@ -14,9 +14,11 @@ class Employee:
         self.division_id = division_id
         self.time_at_company = time_at_company
         self.id = id
+        self._comment = comment
+        self._performance = performance
         Employee.employee_list(self)
     def __repr__(self):
-        return f"<Name = {self.name} Age = {self.age} Pass = {self.password} Manager = {self._is_manager} Time = {self.time_at_company} id = {self.id} Division = {self.division_id}"
+        return f"<Name = {self.name} Age = {self.age} Pass = {self.performance} Manager = {self._is_manager} Time = {self.time_at_company} id = {self.id} Division = {self.division_id}"
     @classmethod
     def employee_list(cls, employee):
         cls.all.append(employee)
@@ -82,7 +84,22 @@ class Employee:
             self._division_id = division_id
         else:
             raise ValueError("Employee must belong to one division of GI Junking Co.")
-
+    
+    @property
+    def comment(self):
+        return self._comment
+    @comment.setter
+    def comment(self, comment):
+        if isinstance(comment, str):
+            self._comment = comment
+    @property
+    def performance(self):
+        return self._performance
+    @performance.setter 
+    def performance(self, performance):
+        if isinstance(performance, int):
+            self._performance = performance
+    
     @classmethod
     def create_table(cls):
         #Creates Employee table, when user "logs in", add this class method as well as the other class methods
@@ -94,7 +111,9 @@ class Employee:
             password TEXT,
             is_manager TEXT,
             division_id INTEGER,
-            time_at_company INTEGER)
+            time_at_company INTEGER,
+            comment TEXT,
+            performance INTEGER)
         """
         CURSOR.execute(sql)
         CONN.commit()
@@ -109,10 +128,10 @@ class Employee:
     def save(self):
         #Saving class instance into database row
         sql = """
-            INSERT INTO employees (name, age, password, is_manager, division_id, time_at_company)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO employees (name, age, password, is_manager, division_id, time_at_company, comment, performance)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """
-        CURSOR.execute(sql, (self.name, self.age, self.password, self._is_manager, self.division_id, self.time_at_company))
+        CURSOR.execute(sql, (self.name, self.age, self.password, self._is_manager, self.division_id, self.time_at_company, self._comment, self._performance))
         CONN.commit()
         self.id = CURSOR.lastrowid
         type(self).db_dict[self.id] = self
@@ -139,9 +158,11 @@ class Employee:
             employee._is_manager = row[4]
             employee.division_id = row[5]
             employee.time_at_company = row[6]
+            employee._comment = row[7]
+            employee._performance = row[8]
         else:
             # not in dictionary, create new instance and add to dictionary
-            employee = cls(row[1], row[2], row[3], row[4], row[5], row[6])
+            employee = cls(row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
             employee.id = row[0]
             cls.db_dict[employee.id] = employee
         return employee
@@ -206,14 +227,43 @@ class Employee:
         """
         row = CURSOR.execute(sql, (password,)).fetchone()
         return cls.db_row_to_instance(row)
+    @classmethod
+    def find_by_highest_performance(cls, division_id):
+        #Retrieves employee whose worked at the company for the longest
+        sql = """
+            SELECT * FROM employees
+            WHERE division_id = ?
+            ORDER BY performance DESC
+        """
+        row = CURSOR.execute(sql, (division_id,)).fetchone()
+        if row:
+            return cls.db_row_to_instance(row)
+        return None
+    @classmethod
+    def list_high_per(cls, division_id):
+        #Switch between inputs using user input
+        sql = """
+            SELECT * FROM employees
+            WHERE division_id = ?
+            ORDER BY performance DESC
+        """
+        rows = CURSOR.execute(sql, (division_id,)).fetchall()
+        return [cls.db_row_to_instance(row) for row in rows]
     def update(self):
         sql = """
             UPDATE employees
-            SET name = ?, age = ?, is_manager = ?, time_at_company = ?
+            SET comment = ?
             WHERE id = ?
         """
-        CURSOR.execute(sql, (self.name, self.age,
-                             self.is_manager, self.time_at_company, self.id))
+        CURSOR.execute(sql, (self._comment, self.id))
+        CONN.commit()
+    def update_performance(self):
+        sql = """
+            UPDATE employees
+            SET performance = ?
+            WHERE id = ?
+        """
+        CURSOR.execute(sql, (self._performance, self.id))
         CONN.commit()
     def delete_by_id_and_name(self, id, name):
         #manager will have to input their password to confirm this, lets make this work

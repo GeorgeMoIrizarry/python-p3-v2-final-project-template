@@ -24,6 +24,6 @@ def seed():
     Car.create(2003, "Honda", "Coupe", 2)
     Car.create(2009, "Kia", "Sedan", 2)
     Car.create(2003, "Kia", "Sedan", 1)
-
+seed()
 
 
