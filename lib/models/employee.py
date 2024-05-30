@@ -1,22 +1,22 @@
 # lib/models/employee.py
 # ADD HOW MANY CARS HAVE BEEN PREPPED AND HOW MANY CARS HAVE BEEN DESTROYED IN INIT
 
-
-
 from models.__init__ import CONN, CURSOR
+from models.company import Company
 class Employee:
     all = []
     db_dict = {}
-    def __init__(self, name, age, password, is_manager, time_at_company=0, id=None):
+    def __init__(self, name, age, password, is_manager, division_id, time_at_company=0, id=None):
         self.name = name
         self.age = age
         self.password = password
         self._is_manager = is_manager
+        self.division_id = division_id
         self.time_at_company = time_at_company
         self.id = id
         Employee.employee_list(self)
     def __repr__(self):
-        return f"<Name = {self.name} Age = {self.age} Pass = {self.password} Manager = {self._is_manager} Time = {self.time_at_company} id = {self.id}"
+        return f"<Name = {self.name} Age = {self.age} Pass = {self.password} Manager = {self._is_manager} Time = {self.time_at_company} id = {self.id} Division = {self.division_id}"
     @classmethod
     def employee_list(cls, employee):
         cls.all.append(employee)
@@ -40,8 +40,10 @@ class Employee:
     def age(self, age):
         if isinstance(age, int) and age >= 18:
             self._age = age 
-        else:
+        elif not isinstance(age, int):
             raise ValueError("Oops! Your age must be over 18, as you'll be handling dangerous and heavy machinery. If this is a mistake on your part, please enter the correct age. If not, refer to an higher authority to handle this matter.")
+        else:
+            raise ValueError("Age is set under 18")
     @property
     def is_manager(self):
         return self._is_manager
@@ -71,6 +73,16 @@ class Employee:
             self._password = password
         else:
             raise ValueError("Oops! For security, a password must include an @ symbol. CANNOT CHANGE PASSWORD ONCE SET")
+    @property
+    def division_id(self):
+        return self._division_id
+    @division_id.setter
+    def division_id(self, division_id):
+        if isinstance(division_id, int) and Company.find_by_id_div(division_id):
+            self._division_id = division_id
+        else:
+            raise ValueError("Vehicle must belong to one division of GI Junking Co.")
+
     @classmethod
     def create_table(cls):
         #Creates Employee table, when user "logs in", add this class method as well as the other class methods
@@ -81,6 +93,7 @@ class Employee:
             age INTEGER,
             password TEXT,
             is_manager TEXT,
+            division_id INTEGER,
             time_at_company INTEGER)
         """
         CURSOR.execute(sql)
@@ -96,17 +109,17 @@ class Employee:
     def save(self):
         #Saving class instance into database row
         sql = """
-            INSERT INTO employees (name, age, password, is_manager, time_at_company)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO employees (name, age, password, is_manager, division_id, time_at_company)
+            VALUES (?, ?, ?, ?, ?, ?)
         """
-        CURSOR.execute(sql, (self.name, self.age, self.password, self._is_manager, self.time_at_company))
+        CURSOR.execute(sql, (self.name, self.age, self.password, self._is_manager, self.division_id, self.time_at_company))
         CONN.commit()
         self.id = CURSOR.lastrowid
         type(self).db_dict[self.id] = self
     @classmethod
-    def create(cls, name, age, password, is_manager, time_at_company):
+    def create(cls, name, age, password, is_manager, division_id, time_at_company):
         #This creates a new instance, attaches itself in a new row in the employees table and returns the instance
-        new_employee= cls(name, age, password, is_manager, time_at_company)
+        new_employee= cls(name, age, password, is_manager, division_id, time_at_company)
         new_employee.save()
         return new_employee
     @classmethod
@@ -115,7 +128,7 @@ class Employee:
         sql = """
             SELECT * FROM employees;
         """
-        rows = CURSOR.execute(sql)
+        rows = CURSOR.execute(sql).fetchall()
         return [cls.db_row_to_instance(row) for row in rows]
     @classmethod
     def db_row_to_instance(cls, row):
@@ -123,12 +136,12 @@ class Employee:
         if employee:
             employee.name = row[1]
             employee.age = row[2]
-            employee.password = row[3]
             employee._is_manager = row[4]
-            employee.time_at_company = row[5]
+            employee.division_id = row[5]
+            employee.time_at_company = row[6]
         else:
             # not in dictionary, create new instance and add to dictionary
-            employee = cls(row[1], row[2], row[3], row[4], row[5])
+            employee = cls(row[1], row[2], row[3], row[4], row[5], row[6])
             employee.id = row[0]
             cls.db_dict[employee.id] = employee
         return employee
@@ -181,6 +194,15 @@ class Employee:
         """
         rows = CURSOR.execute(sql).fetchall()
         return [cls.db_row_to_instance(row) for row in rows]
+    @classmethod
+    def login_by_pass(cls, password):
+        #Find employee instance by password
+        sql = """
+        SELECT * FROM employees
+        WHERE password = ?
+        """
+        row = CURSOR.execute(sql, (password,)).fetchone()
+        return cls.db_row_to_instance(row)
     def update(self):
         sql = """
             UPDATE employees
