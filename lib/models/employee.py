@@ -81,7 +81,7 @@ class Employee:
         if isinstance(division_id, int) and Company.find_by_id_div(division_id):
             self._division_id = division_id
         else:
-            raise ValueError("Vehicle must belong to one division of GI Junking Co.")
+            raise ValueError("Employee must belong to one division of GI Junking Co.")
 
     @classmethod
     def create_table(cls):
@@ -155,44 +155,47 @@ class Employee:
         row = CURSOR.execute(sql, (id,)).fetchone()
         return cls.db_row_to_instance(row)
     @classmethod
-    def find_by_name(cls, name):
+    def find_by_name(cls, name, division_id):
         #Finds an employee by id, only manager can do all read functions
         sql = """
             SELECT * FROM employees
-            WHERE name = ?
+            WHERE name = ? and division_id = ?
         """
-        row = CURSOR.execute(sql, (name,)).fetchone()
+        row = CURSOR.execute(sql, (name, division_id)).fetchone()
         if row:
             return cls.db_row_to_instance(row)
         return None
     @classmethod
-    def find_by_oldest(cls):
+    def find_by_oldest(cls, division_id):
         #Retrieves employee whose worked at the company for the longest
         sql = """
             SELECT * FROM employees
+            WHERE division_id = ?
             ORDER BY time_at_company DESC
         """
-        row = CURSOR.execute(sql).fetchone()
+        row = CURSOR.execute(sql, (division_id,)).fetchone()
         if row:
             return cls.db_row_to_instance(row)
         return None
     @classmethod
-    def alternate_between_lists_asc(cls):
+    def alternate_between_lists_asc(cls, division_id):
         #Switch between inputs using user input
         sql = """
             SELECT * FROM employees
+            WHERE division_id = ?
             ORDER BY time_at_company ASC
         """
-        rows = CURSOR.execute(sql).fetchall()
+        rows = CURSOR.execute(sql, (division_id,)).fetchall()
         return [cls.db_row_to_instance(row) for row in rows]
     @classmethod
-    def alternate_between_lists_desc(cls):
+    def alternate_between_lists_desc(cls, division_id):
         #Switch between inputs using user input
         sql = """
             SELECT * FROM employees
+            WHERE division_id = ?
             ORDER BY time_at_company DESC
         """
-        rows = CURSOR.execute(sql).fetchall()
+        rows = CURSOR.execute(sql, (division_id,)).fetchall()
         return [cls.db_row_to_instance(row) for row in rows]
     @classmethod
     def login_by_pass(cls, password):
