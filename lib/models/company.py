@@ -1,12 +1,10 @@
 # lib/models/company.py
-#Create list with both company divisions, connect self id, READ ONLY class, make it possible to gain all employees
-#and cars under division, add division id to cars and employees so that they belong to company division, add find,
-#method to division only accessible to managers that can see companies whole employee and car set up
+
 from models.__init__ import CONN, CURSOR
 
 class Company:
     all = []
-    db_dict = {}
+    db_dict = {} 
     def __init__(self, name, id=None):
         self.name = name
         self.id = id

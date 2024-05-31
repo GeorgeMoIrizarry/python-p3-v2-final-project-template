@@ -4,7 +4,7 @@
 from models.__init__ import CONN, CURSOR
 from models.company import Company
 class Employee:
-    all = []
+    all = [] 
     db_dict = {}
     def __init__(self, name, age, password, is_manager, division_id, time_at_company=0, id=None, comment=None, performance=0):
         self.name = name
@@ -141,7 +141,7 @@ class Employee:
         new_employee= cls(name, age, password, is_manager, division_id, time_at_company)
         new_employee.save()
         return new_employee
-    @classmethod
+    @classmethod 
     def find_all_employees(cls):
         #Grabs all of the rows of the created employee table, grabs the id, searches dict and that function returns the instances
         sql = """
