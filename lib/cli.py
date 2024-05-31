@@ -3,15 +3,14 @@ from models.__init__ import CONN, CURSOR
 from models.employee import Employee
 from models.car import Car
 from models.company import Company
-from debug import seed
 import os
 import time
 
-from helpers import (
+from helpers import ( 
     log_in,
     sign_up,
     log_out
-) 
+)  
 def main():
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')

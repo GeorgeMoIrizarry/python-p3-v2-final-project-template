@@ -1,5 +1,5 @@
 # lib/brands/car.py
-APPROVED_BRANDS = [
+APPROVED_BRANDS = [ 
   "Abarth",
   "Alfa Romeo",
   "Aston Martin",
@@ -193,59 +193,65 @@ class Car:
         row = CURSOR.execute(sql, (id,)).fetchone()
         return cls.db_row_to_instance(row)
     @classmethod
-    def find_by_year(cls, year):
+    def find_by_year_asc(cls, year, division_id):
+        #Finds an car by id, only manager can do all read functions, grab all of the same year cars
+        sql = """
+            SELECT * FROM cars
+            WHERE year = ? and division_id = ?
+        """
+        row = CURSOR.execute(sql, (year, division_id)).fetchall()
+        return [cls.db_row_to_instance(n) for n in row]
+    @classmethod
+    def find_by_brand(cls, brand, division_id):
         #Finds an car by id, only manager can do all read functions
         sql = """
             SELECT * FROM cars
-            WHERE year = ?
+            WHERE brand = ? and division_id = ?
         """
-        row = CURSOR.execute(sql, (year,)).fetchall()
+        row = CURSOR.execute(sql, (brand, division_id)).fetchall()
         return [cls.db_row_to_instance(n) for n in row]
     @classmethod
-    def find_by_brand(cls, brand):
+    def find_by_type(cls, type, division_id):
         #Finds an car by id, only manager can do all read functions
         sql = """
             SELECT * FROM cars
-            WHERE brand = ?
+            WHERE type = ? and division_id = ?
         """
-        row = CURSOR.execute(sql, (brand,)).fetchall()
+        row = CURSOR.execute(sql, (type, division_id)).fetchall()
         return [cls.db_row_to_instance(n) for n in row]
     @classmethod
-    def find_by_type(cls, type):
-        #Finds an car by id, only manager can do all read functions
+    def alternate_year_desc(cls, division_id):
+        #oldest to youngest
         sql = """
             SELECT * FROM cars
-            WHERE type = ?
-        """
-        row = CURSOR.execute(sql, (type,)).fetchall()
-        return [cls.db_row_to_instance(n) for n in row]
-    @classmethod
-    def alternate_year(cls):
-        #Youngest to oldest
-        sql = """
-            SELECT * FROM cars
+            WHERE division_id = ?
             ORDER BY year DESC
+            
         """
-        rows = CURSOR.execute(sql).fetchall()
+        rows = CURSOR.execute(sql, (division_id,)).fetchall()
         return [cls.db_row_to_instance(row) for row in rows]
     @classmethod
-    def alternate_year_asc(cls):
+    def alternate_year_asc(cls, division_id):
         #Oldest to youngest
         sql = """
             SELECT * FROM cars
+            WHERE division_id = ?
             ORDER BY year ASC
+            
         """
-        rows = CURSOR.execute(sql).fetchall()
+        rows = CURSOR.execute(sql, (division_id,)).fetchall()
         return [cls.db_row_to_instance(row) for row in rows]
     @classmethod
-    def fetch_all_by_name_default(cls):
+    def fetch_all_by_name_default(cls, division_id):
         #Switch between inputs using user input
         sql = """
             SELECT * FROM cars
-            ORDER BY brand 
+            WHERE division_id = ?
+            ORDER BY brand
         """
-        rows = CURSOR.execute(sql).fetchall()
+        rows = CURSOR.execute(sql, (division_id,)).fetchall()
         return [cls.db_row_to_instance(row) for row in rows]
+    
     @classmethod
     def delete_by_id(cls, id):
         #
