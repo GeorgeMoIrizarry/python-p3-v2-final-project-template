@@ -11,7 +11,7 @@ from helpers import (
     sign_up,
     log_out
 )  
-def main():
+def main():  
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
         login()

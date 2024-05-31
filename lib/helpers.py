@@ -327,11 +327,11 @@ def vehicle_list_by_year(USER):
         print("1. Grab All Vehicles With The Same Year")
         print("2. Grab Vehicles Oldest To Youngest")
         print("3. Grab Vehicles Youngest To Oldest")
-        print("4. Go Back")
+        print("4. Go Back") 
         print("5. Log Out")
         choice = input("> ") 
         if choice == "1":
-            year = input("Enter Vehicle Year: ")
+            year = int(input("Enter Vehicle Year: "))
             instance = Car.find_by_year_asc(year, USER.division_id)
             for n in instance:
                 print(f"{n.year} {n.brand} Vehicle Type: {n.type} Belongs To The {'Lancaster' if n.division_id == 1 else 'York'} Division")
